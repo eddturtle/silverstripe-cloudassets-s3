@@ -12,6 +12,7 @@ class S3Bucket extends CloudBucket
     const API_KEY     = 'ApiKey';
     const API_SECRET  = 'ApiSecret';
     const FORCE_DL    = 'ForceDownload';
+    const ACL         = 'Acl';
 
     /**
      * @var string
@@ -44,6 +45,12 @@ class S3Bucket extends CloudBucket
         if (empty($cfg[self::API_SECRET])) {
             throw new Exception('S3Bucket: missing configuration key - ' . self::API_SECRET);
         }
+
+        // Fallback to private
+        if (empty($cfg[self::ACL])) {
+            $this->config[self::ACL] = 'private';
+        }
+
         $this->containerName = $this->config[self::CONTAINER];
 
         $this->client = new S3Client([
@@ -68,7 +75,7 @@ class S3Bucket extends CloudBucket
                 'Bucket' => $this->containerName,
                 'Key' => $this->getRelativeLinkFor($f),
                 'SourceFile' => $f->getFullPath(),
-                'ACL' => 'private',
+                'ACL' => $this->config[self::ACL],
                 'ContentType' => mime_content_type($f->getFullPath()),
             ]);
         } catch (Exception $e) {
