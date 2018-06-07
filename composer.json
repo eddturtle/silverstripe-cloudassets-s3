@@ -1,20 +1,16 @@
 {
-	"name": "edlinklater/silverstripe-cloudassets-s3",
+	"name": "eddturtle/silverstripe-cloudassets-s3",
 	"description": "Amazon S3 bucket driver for markguinn/silverstripe-cloudassets",
 	"type": "silverstripe-module",
 	"keywords": ["silverstripe", "assets", "cdn", "cloud storage", "amazon", "s3", "cloudassets"],
 	"license": "MIT",
-	"authors": [{
-		"name": "Ed Linklater",
-		"email": "ss@ed.geek.nz",
-		"homepage": "http://github.com/edlinklater"
-	}],
 	"extra": {
 		"installer-name": "cloudassets-s3"
 	},
 	"require": {
-		"silverstripe/framework": ">=3.1",
+		"silverstripe/framework": ">=3.2",
 		"markguinn/silverstripe-cloudassets": "*",
-		"aws/aws-sdk-php": "2.*"
+		"aws/aws-sdk-php": "~3.61",
+		"squizlabs/php_codesniffer": "*"
 	}
 }
