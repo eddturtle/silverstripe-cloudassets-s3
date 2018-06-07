@@ -1,18 +1,10 @@
 <?php
+
+use Aws\S3\S3Client;
+
 /**
  * Bucket/container driver for Amazon S3
- * Based on markguinn/silverstripe-cloudassets-rackspace
- *
- * @author Ed Linklater <ss@ed.geek.nz>
- * @package cloudassets
- * @subpackage buckets
  */
-use Aws\Common\Aws;
-use Aws\Common\Enum\Size;
-use Aws\Common\Exception\MultipartUploadException;
-use Aws\S3\S3Client;
-use Aws\S3\Model\MultipartUpload\UploadBuilder;
-
 class S3Bucket extends CloudBucket
 {
     const CONTAINER   = 'Container';
@@ -39,6 +31,7 @@ class S3Bucket extends CloudBucket
     public function __construct($path, array $cfg = array())
     {
         parent::__construct($path, $cfg);
+
         if (empty($cfg[self::CONTAINER])) {
             throw new Exception('S3Bucket: missing configuration key - ' . self::CONTAINER);
         }
@@ -59,7 +52,6 @@ class S3Bucket extends CloudBucket
         ]);
     }
 
-
     /**
      * @param File $f
      * @throws Exception
@@ -71,12 +63,16 @@ class S3Bucket extends CloudBucket
             throw new Exception('Unable to open file: ' . $f->getFilename());
         }
 
-        $this->client->putObject([
-            'Bucket' => $this->containerName,
-            'Key' => $f->getFullPath(),
-            'SourceFile' => $this->getRelativeLinkFor($f),
-            'ACL' => 'private',
-        ]);
+        try {
+            $this->client->putObject([
+                'Bucket' => $this->containerName,
+                'Key' => $this->getRelativeLinkFor($f),
+                'SourceFile' => $f->getFullPath(),
+                'ACL' => 'private',
+            ]);
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+        }
     }
 
 
@@ -98,12 +94,11 @@ class S3Bucket extends CloudBucket
      */
     public function rename(File $f, $beforeName, $afterName)
     {
-        $obj = $this->getFileObjectFor($beforeName);
-        $result = $this->client->copyObject(array(
+        $result = $this->client->copyObject([
             'Bucket'     => $this->containerName,
             'CopySource' => urlencode($this->containerName . '/' . $this->getRelativeLinkFor($beforeName)),
             'Key'        => $this->getRelativeLinkFor($afterName),
-        ));
+        ]);
         if ($result) {
             $this->delete($f);
         }
