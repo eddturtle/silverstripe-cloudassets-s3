@@ -69,6 +69,7 @@ class S3Bucket extends CloudBucket
                 'Key' => $this->getRelativeLinkFor($f),
                 'SourceFile' => $f->getFullPath(),
                 'ACL' => 'private',
+                'ContentType' => mime_content_type($f->getFullPath()),
             ]);
         } catch (Exception $e) {
             error_log($e->getMessage());
@@ -115,7 +116,6 @@ class S3Bucket extends CloudBucket
         return $obj['Body'];
     }
 
-
     /**
      * This version just returns a normal link. I'm assuming most
      * buckets will implement this but I want it to be optional.
@@ -127,10 +127,13 @@ class S3Bucket extends CloudBucket
      */
     public function getTemporaryLinkFor($f, $expires = 3600)
     {
-        $obj = $this->getFileObjectFor($this->getRelativeLinkFor($f));
-        return $obj['Body']->getUri();
+        $cmd = $this->client->getCommand('GetObject', [
+            'Bucket' => $this->containerName,
+            'Key' => $this->getRelativeLinkFor($f),
+        ]);
+        $request = $this->client->createPresignedRequest($cmd, '+10080 minutes');
+        return (string)$request->getUri();
     }
-
 
     /**
      * @param $f - File object or filename
